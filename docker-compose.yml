@@ -1,0 +1,107 @@
+x-deploy-policy: &x-deploy-policy
+  replicas: 3
+  placement:
+    constraints:
+      - node.role == manager
+  update_config:
+    parallelism: 1
+    delay: 30s
+    order: stop-first
+    failure_action: rollback
+  rollback_config:
+    parallelism: 1
+    delay: 30s
+  restart_policy:
+    condition: on-failure
+    delay: 30s
+    max_attempts: 3
+    window: 120s
+
+x-default-logging: &x-default-logging
+  options:
+    max-size: "12m"
+    max-file: "5"
+  driver: json-file
+
+configs:
+  prometheus.yml:
+    template_driver: golang
+    name: prometheus-v1.1.yml
+    file: configs/prometheus.yml
+  alertmanager.yml:
+    template_driver: golang
+    name: alertmanager-v1.1.yml
+    file: configs/alertmanager.yml
+
+  # Rules
+  prometheus-swarm-node-rules:
+    file: rules/swarm_node.rules.yml
+  prometheus-swarm-task-rules:
+    file: rules/swarm_task.rules.yml
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    hostname: prometheus-{{.Task.Slot}}-{{.Task.ID}}
+    user: root
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.size=60GB"
+      - "--storage.tsdb.retention.time=30d"
+      - "--log.level=info"
+    environment:
+      - TASK_SLOT={{.Task.Slot}}
+    networks:
+      - docker_metrics
+    ports:
+      - 9090:9090
+    volumes:
+      - prometheus:/prometheus
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    configs:
+      - source: prometheus.yml
+        target: /etc/prometheus/prometheus.yml
+
+      # Rules
+      - source: prometheus-swarm-node-rules
+        target: /etc/prometheus/swarm_node.rules.yml
+      - source: prometheus-swarm-task-rules
+        target: /etc/prometheus/swarm_task.rules.yml
+    deploy: *x-deploy-policy
+    logging: *x-default-logging
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    hostname: alertmanager-{{.Task.Slot}}-{{.Task.ID}}
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+      - "--cluster.listen-address=0.0.0.0:9094"
+      - "--cluster.advertise-address=:9094"
+      - "--cluster.peer=alertmanager:9094"
+    networks:
+      - docker_metrics
+    ports:
+      - 9093:9093
+    volumes:
+      - alertmanager:/alertmanager
+    configs:
+      - source: alertmanager.yml
+        target: /etc/alertmanager/alertmanager.yml
+    deploy: 
+      <<: *x-deploy-policy
+      labels:
+        io.prometheus.job: "alertmanager"
+    logging: *x-default-logging
+
+volumes:
+  prometheus:
+    name: prometheus-{{.Task.Slot}}
+  alertmanager:
+    name: alertmanager-{{.Task.Slot}}
+
+networks:
+  docker_metrics:
+    name: docker_metrics
+    external: true
