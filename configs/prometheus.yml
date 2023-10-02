@@ -82,9 +82,9 @@ scrape_configs:
       - source_labels: [__meta_dockerswarm_service_label_io_prometheus_job]
         regex: .+
         action: keep
-      # Only keep containers that have a `docker_metrics` label.
+      # Only keep containers that have a `dockerswarm_monitoring` label.
       - source_labels: [__meta_dockerswarm_network_name]
-        regex: docker_metrics
+        regex: dockerswarm_monitoring
         action: keep
       # Use the prometheus-job Swarm label as Prometheus job label.
       - source_labels: [__meta_dockerswarm_service_label_io_prometheus_job]

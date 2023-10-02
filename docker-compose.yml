@@ -53,7 +53,7 @@ services:
     environment:
       - TASK_SLOT={{.Task.Slot}}
     networks:
-      - docker_metrics
+      - dockerswarm_monitoring
     ports:
       - 9090:9090
     volumes:
@@ -81,7 +81,7 @@ services:
       - "--cluster.advertise-address=:9094"
       - "--cluster.peer=alertmanager:9094"
     networks:
-      - docker_metrics
+      - dockerswarm_monitoring
     ports:
       - 9093:9093
     volumes:
@@ -102,6 +102,6 @@ volumes:
     name: alertmanager-{{.Task.Slot}}
 
 networks:
-  docker_metrics:
-    name: docker_metrics
+  dockerswarm_monitoring:
+    name: dockerswarm_monitoring
     external: true
