@@ -49,6 +49,21 @@ configs:
     file: services/alertmanager/alertmanager.yml
 
 services:
+  grafana-server:
+    image: grafana/grafana:10.1.2
+    environment:
+      - GF_LOG_LEVEL=info
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - promstack
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana:/var/lib/grafana
+    deploy: *x-deploy-default
+    logging: *x-logging-default
+
   prometheus:
     image: prom/prometheus:latest
     hostname: prometheus-{{.Task.Slot}}
@@ -107,6 +122,7 @@ services:
     logging: *x-logging-default
 
 volumes:
+  grafana:
   prometheus:
   alertmanager:
 
