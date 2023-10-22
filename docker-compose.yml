@@ -27,6 +27,7 @@ volumes:
 
 networks:
   promstack:
+    external: true
 
 configs:
   # Prometheus
