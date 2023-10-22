@@ -1,6 +1,5 @@
 docker_stack_name = promstack
 
-
 it:
 	@echo "make [deploy|destroy]"
 
