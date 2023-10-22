@@ -3,6 +3,7 @@ global:
   evaluation_interval: 5s # By default, scrape targets every 15 seconds.
   # scrape_timeout is set to the global default (10s).
 
+alerting:
   alertmanagers:
     # Remote alertmanager
     - url: http://{{.Node.Hostname}:9093
