@@ -5,8 +5,6 @@ global:
 
 alerting:
   alertmanagers:
-    # Remote alertmanager
-    - url: http://{{.Node.Hostname}:9093
     - dns_sd_configs:
         - names:
           - 'tasks.alertmanager'
