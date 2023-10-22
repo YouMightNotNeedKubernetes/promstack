@@ -1,4 +1,4 @@
-x-deploy-policy: &x-deploy-policy
+x-deploy-default: &x-deploy-default
   replicas: 1
   update_config:
     parallelism: 1
@@ -14,7 +14,7 @@ x-deploy-policy: &x-deploy-policy
     max_attempts: 3
     window: 120s
 
-x-default-logging: &x-default-logging
+x-logging-default: &x-logging-default
   options:
     max-size: "12m"
     max-file: "5"
@@ -24,29 +24,29 @@ configs:
   # Prometheus
   prometheus-config:
     name: prometheus-config-v1
-    file: configs/prometheus.yml
+    file: services/prometheus/prometheus.yml
   # Scrape configs
   scrape-configs-docker:
     name: prometheus-scrape-configs-docker-v1
-    file: configs/scrape_configs/docker.yml
+    file: services/prometheus/scrape_configs/docker.yml
   scrape-configs-dockerswarm:
     name: prometheus-scrape-configs-dockerswarm-v1
-    file: configs/scrape_configs/dockerswarm.yml
+    file: services/prometheus/scrape_configs/dockerswarm.yml
   # Rules
   alerting-rules-node:
     name: prometheus-alerting-rules-node-v1
-    file: configs/rules/node.yml
+    file: services/prometheus/rules/node.yml
   alerting-rules-service:
     name: prometheus-alerting-rules-service-v1
-    file: configs/rules/service.yml
+    file: services/prometheus/rules/service.yml
   alerting-rules-task:
     name: prometheus-alerting-rules-task-v1
-    file: configs/rules/task.yml
+    file: services/prometheus/rules/task.yml
   
   # Alertmanager
   alertmanager.yml:
     name: alertmanager-v1.0.yml
-    file: configs/alertmanager.yml
+    file: services/alertmanager/alertmanager.yml
 
 services:
   prometheus:
@@ -81,8 +81,8 @@ services:
         target: /etc/prometheus/rules/service.yml
       - source: alerting-rules-task
         target: /etc/prometheus/rules/task.yml
-    deploy: *x-deploy-policy
-    logging: *x-default-logging
+    deploy: *x-deploy-default
+    logging: *x-logging-default
 
   alertmanager:
     image: prom/alertmanager:latest
