@@ -1,34 +1,9 @@
 # promstack
-A high-availability prometheus/alertmanager stack for Docker Swarm
+A simple development stack for Prometheus, Alertmanager and Grafana.
 
-## Getting Started
+## Usage
 
-You might need to create swarm-scoped overlay network called `dockerswarm_monitoring` for all the stacks to communicate if you haven't already.
-
-```sh
-$ docker network create --driver overlay --attachable dockerswarm_monitoring
-```
-
-We provided a base configuration file for Prometheus & Alertmanager. You can find it in the `config` folder.  
-Please make a copy as `configs/prometheus.yml` & `configs/alertmanager.yml`, make sure to change the following values:
-
-```yml
-# configs/prometheus.yml
-global:
-  external_labels:
-      cluster: demo
-      namespace: demo
-      __replica__: replica-{{ env "TASK_SLOT"}}
-
-remote_write:
-  - url: http://mimir:3200/api/v1/push
-    headers:
-      "X-Scope-OrgID": demo
-```
-
-And add any additional configuration you need to `configs/prometheus.yml` & `configs/alertmanager.yml`.
-
-## Deployment
+### Deploy
 
 To deploy the stack, run the following command:
 
@@ -36,7 +11,7 @@ To deploy the stack, run the following command:
 $ make deploy
 ```
 
-## Destroy
+### Destroy
 
 To destroy the stack, run the following command:
 
