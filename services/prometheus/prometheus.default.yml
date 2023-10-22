@@ -1,0 +1,32 @@
+global:
+  scrape_interval:     5s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 5s # By default, scrape targets every 15 seconds.
+  # scrape_timeout is set to the global default (10s).
+
+  alertmanagers:
+    # Remote alertmanager
+    - url: http://{{.Node.Hostname}:9093
+    - dns_sd_configs:
+        - names:
+          - 'tasks.alertmanager'
+          type: 'A'
+          port: 9093
+
+# Load and evaluate rules in this file every 'evaluation_interval' seconds.
+rule_files:
+  - "rules/node.yml"
+  - "rules/service.yml"
+  - "rules/task.yml"
+
+# Scrape config files specifies a list of globs. Scrape configs are read from
+# all matching files and appended to the list of scrape configs.
+scrape_config_files:
+  - "scrape_configs/docker.yml"
+  - "scrape_configs/dockerswarm.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+scrape_configs:
+  # Here it's Prometheus itself.
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

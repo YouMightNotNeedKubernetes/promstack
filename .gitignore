@@ -1,2 +1,2 @@
-configs/alertmanager.yml
-configs/prometheus.yml
+alertmanager.yml
+prometheus.yml

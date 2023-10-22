@@ -1,8 +1,5 @@
 x-deploy-policy: &x-deploy-policy
-  replicas: 3
-  placement:
-    constraints:
-      - node.role == manager
+  replicas: 1
   update_config:
     parallelism: 1
     delay: 30s
@@ -24,64 +21,78 @@ x-default-logging: &x-default-logging
   driver: json-file
 
 configs:
-  prometheus.yml:
-    template_driver: golang
-    name: prometheus-v1.1.yml
+  # Prometheus
+  prometheus-config:
+    name: prometheus-config-v1
     file: configs/prometheus.yml
-  alertmanager.yml:
-    template_driver: golang
-    name: alertmanager-v1.1.yml
-    file: configs/alertmanager.yml
-
+  # Scrape configs
+  scrape-configs-docker:
+    name: prometheus-scrape-configs-docker-v1
+    file: configs/scrape_configs/docker.yml
+  scrape-configs-dockerswarm:
+    name: prometheus-scrape-configs-dockerswarm-v1
+    file: configs/scrape_configs/dockerswarm.yml
   # Rules
-  prometheus-swarm-node-rules:
-    file: rules/swarm_node.rules.yml
-  prometheus-swarm-task-rules:
-    file: rules/swarm_task.rules.yml
+  alerting-rules-node:
+    name: prometheus-alerting-rules-node-v1
+    file: configs/rules/node.yml
+  alerting-rules-service:
+    name: prometheus-alerting-rules-service-v1
+    file: configs/rules/service.yml
+  alerting-rules-task:
+    name: prometheus-alerting-rules-task-v1
+    file: configs/rules/task.yml
+  
+  # Alertmanager
+  alertmanager.yml:
+    name: alertmanager-v1.0.yml
+    file: configs/alertmanager.yml
 
 services:
   prometheus:
     image: prom/prometheus:latest
-    hostname: prometheus-{{.Task.Slot}}-{{.Task.ID}}
+    hostname: prometheus-{{.Task.Slot}}
     user: root
     command:
+      - "--log.level=info"
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
-      - "--storage.tsdb.retention.size=60GB"
-      - "--storage.tsdb.retention.time=30d"
-      - "--log.level=info"
-    environment:
-      - TASK_SLOT={{.Task.Slot}}
+      - "--storage.tsdb.retention.size=10GB"
+      - "--storage.tsdb.retention.time=10d"
     networks:
-      - dockerswarm_monitoring
+      - promstack
     ports:
       - 9090:9090
     volumes:
       - prometheus:/prometheus
       - /var/run/docker.sock:/var/run/docker.sock:ro
     configs:
-      - source: prometheus.yml
+      - source: prometheus-config
         target: /etc/prometheus/prometheus.yml
-
+      # Scrape configs
+      - source: scrape-configs-docker
+        target: /etc/prometheus/scrape_configs/docker.yml
+      - source: scrape-configs-dockerswarm
+        target: /etc/prometheus/scrape_configs/dockerswarm.yml
       # Rules
-      - source: prometheus-swarm-node-rules
-        target: /etc/prometheus/swarm_node.rules.yml
-      - source: prometheus-swarm-task-rules
-        target: /etc/prometheus/swarm_task.rules.yml
+      - source: alerting-rules-node
+        target: /etc/prometheus/rules/node.yml
+      - source: alerting-rules-service
+        target: /etc/prometheus/rules/service.yml
+      - source: alerting-rules-task
+        target: /etc/prometheus/rules/task.yml
     deploy: *x-deploy-policy
     logging: *x-default-logging
 
   alertmanager:
     image: prom/alertmanager:latest
-    hostname: alertmanager-{{.Task.Slot}}-{{.Task.ID}}
+    hostname: alertmanager-{{.Task.Slot}}
     command:
+      - "--log.level=info"
       - "--config.file=/etc/alertmanager/alertmanager.yml"
       - "--storage.path=/alertmanager"
-      - "--cluster.listen-address=0.0.0.0:9094"
-      - "--cluster.advertise-address=:9094"
-      - "--cluster.peer=alertmanager:9094"
     networks:
-      - dockerswarm_monitoring
+      - promstack
     ports:
       - 9093:9093
     volumes:
@@ -90,18 +101,14 @@ services:
       - source: alertmanager.yml
         target: /etc/alertmanager/alertmanager.yml
     deploy: 
-      <<: *x-deploy-policy
+      <<: *x-deploy-default
       labels:
         io.prometheus.job: "alertmanager"
-    logging: *x-default-logging
+    logging: *x-logging-default
 
 volumes:
   prometheus:
-    name: prometheus-{{.Task.Slot}}
   alertmanager:
-    name: alertmanager-{{.Task.Slot}}
 
 networks:
-  dockerswarm_monitoring:
-    name: dockerswarm_monitoring
-    external: true
+  promstack:
