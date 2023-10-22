@@ -1,3 +1,4 @@
+-include .env
 docker_stack_name = promstack
 
 it:
