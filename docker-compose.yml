@@ -30,31 +30,27 @@ networks:
     external: true
 
 configs:
+  # Grafana
+  grafana-datasource:
+    file: services/grafana/provisioning/datasources/promstack.yaml
   # Prometheus
   prometheus-config:
-    name: prometheus-config-v1
     file: services/prometheus/prometheus.yml
   # Scrape configs
   scrape-configs-docker:
-    name: prometheus-scrape-configs-docker-v1
     file: services/prometheus/scrape_configs/docker.yml
   scrape-configs-dockerswarm:
-    name: prometheus-scrape-configs-dockerswarm-v1
     file: services/prometheus/scrape_configs/dockerswarm.yml
   # Rules
   alerting-rules-node:
-    name: prometheus-alerting-rules-node-v1
     file: services/prometheus/rules/node.yml
   alerting-rules-service:
-    name: prometheus-alerting-rules-service-v1
     file: services/prometheus/rules/service.yml
   alerting-rules-task:
-    name: prometheus-alerting-rules-task-v1
     file: services/prometheus/rules/task.yml
   
   # Alertmanager
   alertmanager.yml:
-    name: alertmanager-v1.0.yml
     file: services/alertmanager/alertmanager.yml
 
   # Node Exporter
@@ -74,6 +70,9 @@ services:
       - promstack
     ports:
       - 3000:3000
+    configs:
+      - source: grafana-datasource
+        target: /etc/grafana/provisioning/datasources/promstack.yaml
     volumes:
       - grafana:/var/lib/grafana
     deploy: *x-deploy-default
