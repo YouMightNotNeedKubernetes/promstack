@@ -1,5 +1,4 @@
 x-deploy-default: &x-deploy-default
-  replicas: 1
   update_config:
     parallelism: 1
     delay: 30s
@@ -59,7 +58,7 @@ configs:
     file: services/node-exporter/node-meta.prom
 
 services:
-  grafana-server:
+  grafana:
     image: grafana/grafana:${GRAFANA_VERSION:?Please set GRAFANA_VERSION environment variable}
     environment:
       - GF_LOG_LEVEL=info
@@ -76,7 +75,12 @@ services:
         target: /etc/grafana/provisioning/datasources/promstack.yaml
     volumes:
       - grafana:/var/lib/grafana
-    deploy: *x-deploy-default
+    deploy: 
+      <<: *x-deploy-default
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
     logging: *x-logging-default
 
   prometheus:
@@ -111,7 +115,12 @@ services:
         target: /etc/prometheus/rules/service.yml
       - source: alerting-rules-task
         target: /etc/prometheus/rules/task.yml
-    deploy: *x-deploy-default
+    deploy: 
+      <<: *x-deploy-default
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
     logging: *x-logging-default
 
   alertmanager:
@@ -132,8 +141,12 @@ services:
         target: /etc/alertmanager/alertmanager.yml
     deploy: 
       <<: *x-deploy-default
+      replicas: 1
       labels:
         io.prometheus.job: "alertmanager"
+      placement:
+        constraints:
+          - node.role == manager
     logging: *x-logging-default
 
   node-exporter:
@@ -158,6 +171,7 @@ services:
         target: /etc/node-exporter/node-meta.prom
     deploy: 
       <<: *x-deploy-default
+      mode: global
       labels:
         io.prometheus.job: "node-exporter"
     logging: *x-logging-default
@@ -184,6 +198,7 @@ services:
       # - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
     deploy: 
       <<: *x-deploy-default
+      mode: global
       labels:
         io.prometheus.job: "cadvisor"
     logging: *x-logging-default
