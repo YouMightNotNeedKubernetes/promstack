@@ -153,7 +153,6 @@ services:
 
   node-exporter:
     image: prom/node-exporter:${NODE_EXPORTER_VERSION:?Please set NODE_EXPORTER_VERSION environment variable}
-    privileged: true
     command:
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
       - '--collector.textfile.directory=/etc/node-exporter/'
@@ -185,8 +184,6 @@ services:
       - promstack
     ports:
       - 8080:8080
-    devices:
-      - /dev/kmsg:/dev/kmsg
     volumes:
       - /:/rootfs:ro
       - /sys:/sys:ro
@@ -195,9 +192,10 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       # For Darwin comment out the following line
-      # - /etc/hostname:/etc/hostname:ro
-      # - /etc/machine-id:/etc/machine-id:ro
-      # - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
+      - /dev/kmsg:/dev/kmsg
+      - /etc/hostname:/etc/hostname:ro
+      - /etc/machine-id:/etc/machine-id:ro
+      - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro
     deploy: 
       <<: *x-deploy-default
       mode: global
