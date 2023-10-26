@@ -1,14 +1,6 @@
 # promstack
 A simple development stack for Prometheus, Alertmanager and Grafana.
 
-## Usage
-
-You might need to create swarm-scoped overlay network called `promstack` for all the stacks to communicate if you haven't already.
-
-```sh
-$ docker network create --scope swarm --driver overlay --attachable promstack
-```
-
 ### Deploy
 
 To deploy the stack, run the following command:
