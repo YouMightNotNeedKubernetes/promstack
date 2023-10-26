@@ -81,6 +81,8 @@ services:
       placement:
         constraints:
           - node.role == manager
+      labels:
+        io.prometheus.enable: "true"
     logging: *x-logging-default
 
   prometheus:
@@ -143,7 +145,7 @@ services:
       <<: *x-deploy-default
       replicas: 1
       labels:
-        io.prometheus.job: "alertmanager"
+        io.prometheus.enable: "true"
       placement:
         constraints:
           - node.role == manager
@@ -173,7 +175,7 @@ services:
       <<: *x-deploy-default
       mode: global
       labels:
-        io.prometheus.job: "node-exporter"
+        io.prometheus.enable: "true"
     logging: *x-logging-default
 
   cadvisor:
@@ -200,5 +202,5 @@ services:
       <<: *x-deploy-default
       mode: global
       labels:
-        io.prometheus.job: "cadvisor"
+        io.prometheus.enable: "true"
     logging: *x-logging-default
