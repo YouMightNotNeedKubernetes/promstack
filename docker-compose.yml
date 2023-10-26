@@ -19,14 +19,14 @@ x-logging-default: &x-logging-default
     max-file: "5"
   driver: json-file
 
+networks:
+  prometheus:
+  dockerswarm_monitoring:
+
 volumes:
   grafana:
   prometheus:
   alertmanager:
-
-networks:
-  promstack:
-    external: true
 
 configs:
   # Grafana
@@ -67,7 +67,7 @@ services:
       - GF_CHECK_FOR_UPDATES=false
       - GF_SERVER_DOMAIN={{.Node.Hostname}}
     networks:
-      - promstack
+      - dockerswarm_monitoring
     ports:
       - 3000:3000
     configs:
@@ -96,7 +96,8 @@ services:
       - "--storage.tsdb.retention.size=10GB"
       - "--storage.tsdb.retention.time=10d"
     networks:
-      - promstack
+      - prometheus
+      - dockerswarm_monitoring
     ports:
       - 9090:9090
     volumes:
@@ -133,7 +134,8 @@ services:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
       - "--storage.path=/alertmanager"
     networks:
-      - promstack
+      - prometheus
+      - dockerswarm_monitoring
     ports:
       - 9093:9093
     volumes:
@@ -162,7 +164,7 @@ services:
       NODE_ID: "${NODE_ID:-{{.Node.ID}}}"
       NODE_NAME: "${NODE_NAME:-{{.Node.Hostname}}}"
     networks:
-      - promstack
+      - prometheus
     ports:
       - 9100:9100
     volumes:
@@ -181,7 +183,7 @@ services:
     image: gcr.io/cadvisor/cadvisor:${CADVISOR_VERSION:?Please set CADVISOR_VERSION environment variable}
     command: -logtostderr -docker_only
     networks:
-      - promstack
+      - prometheus
     ports:
       - 8080:8080
     volumes:
