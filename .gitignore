@@ -1,2 +1,3 @@
 alertmanager.yml
 prometheus.yml
+promtail.yml
