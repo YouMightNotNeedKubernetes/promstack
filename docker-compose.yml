@@ -121,6 +121,8 @@ services:
         target: /etc/prometheus/rules/service.yml
       - source: alerting-rules-task
         target: /etc/prometheus/rules/task.yml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     deploy: 
       <<: *x-deploy-default
       replicas: 1
