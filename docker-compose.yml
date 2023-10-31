@@ -57,9 +57,9 @@ configs:
     file: services/node-exporter/node-meta.prom
 
   # Promtail
-  promtail.yaml:
+  promtail.yml:
     template_driver: golang
-    file: services/promtail/promtail.yaml
+    file: services/promtail/promtail.yml
 
 services:
   grafana:
@@ -219,7 +219,7 @@ services:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     configs:
-      - source: promtail-config
+      - source: promtail.yml
         target: /etc/promtail/config.yml
     deploy: 
       <<: *x-deploy-default
